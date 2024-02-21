@@ -1,0 +1,5 @@
+epochs : 30
+lr : 0.0001
+#model_origin_path : './cifar_net.pth'
+model_save_path : './saved'
+#target_accuracy: None

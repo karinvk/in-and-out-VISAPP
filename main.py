@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from data.ksdd2 import KolektorSDD2
-from model.resnet import resnet18
+from model.resnet import ResNet
 from train.trainer import train
 import os
 import pandas as pd
@@ -27,7 +27,7 @@ def main(args):
 
     # Train Setting.
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model=resnet18(num_classes=1000, input_img_size=(704, 256),pre_trained=False).to(device)
+    model=ResNet.resnet18(num_classes=2, input_img_size=(704, 256),pre_trained=False).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9) #optimizer = torch.optim.Adam(params, lr=0.0001)
 

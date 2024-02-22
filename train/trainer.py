@@ -15,12 +15,12 @@ def train(trainloader, testloader, model, optimizer, criterion, epochs, device, 
     for epoch in range(epochs):  # loop over the dataset multiple times
         model.train()
         running_loss = 0.0
-        correct_train = 0   #count number of correct prediction in this batch
+        running_correct = 0   #count number of correct prediction in this batch
         total_train = 0   #count of all data in this batch
 
         train_bar=tqdm(trainloader,position=0,leave=True) #file=sys.stdout
         for i, data in enumerate(train_bar):
-            images, labels = data # get the inputs; data is a list of [images, labels]
+            images, labels, mask, info = data # get the inputs; data is a list of [images, labels]
             optimizer.zero_grad() # zero the parameter gradients
             # forward + backward + optimize
             preds_scores = model(images.to(device)) #output=logit
@@ -37,7 +37,7 @@ def train(trainloader, testloader, model, optimizer, criterion, epochs, device, 
                                                                     loss)
 
         # print statistics
-        train_accuracy = correct_train.double() / total_train #epoch_acc, double for better accuracy
+        train_accuracy = running_correct / total_train #epoch_acc, double for better accuracy
         train_accuracies.append(train_accuracy)
         train_loss = running_loss / len(trainloader) #epoch_loss
         train_losses.append(train_loss)
@@ -55,10 +55,11 @@ def train(trainloader, testloader, model, optimizer, criterion, epochs, device, 
         with torch.no_grad():
             val_bar = tqdm(testloader)
             for val_data in val_bar:
-                val_images, val_labels = val_data
-                preds_scores = model(val_images.to(device))
+                val_images, val_labels, val_mask, val_info = val_data
+                preds_scores = model(val_images.to(device)) #preds_probs,_ = model(inputs)
                 # loss = loss_function(outputs, test_labels)
-                preds_class = torch.max(preds_scores, dim=1)[1]
+                _, preds_class = torch.max(preds_scores[0], 1)  
+                # torch.max(preds_scores, dim=1)[1]
                 correct_valid += torch.eq(preds_class, val_labels.to(device)).sum().item()
                 total_valid += val_labels.size(0) #=len(testset)
                 val_bar.desc = "valid epoch[{}/{}]".format(epoch + 1,
@@ -66,7 +67,7 @@ def train(trainloader, testloader, model, optimizer, criterion, epochs, device, 
 
         valid_accuracy = correct_valid / total_valid
         valid_accuracies.append(valid_accuracy)
-        valid_losses.append(loss.item())
+        #valid_losses.append(loss.item())
 
         print('[epoch %d] train_loss: %.3f  val_accuracy: %.3f' %
                 (epoch + 1, train_loss, valid_accuracy)) #transteps=len(trainloader)
